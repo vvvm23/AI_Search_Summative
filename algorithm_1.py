@@ -210,14 +210,22 @@ codes_and_names = {'BF' : 'brute-force search',
 ############    now the code for your algorithm should begin                               ############
 #######################################################################################################
 
-nb_cities = 0
+nb_cities = 175
+initial_city = 0
+
+# Heuristic cost algorithm
+def heuristic():
+    return 0
 
 class State:
-    def __init__(self, cities=[], path_cost_from_root=0, total_cost=0):
+    def __init__(self, current_city, cities=[], path_cost_from_root=0, total_cost=0):
+        global nb_cities
         self.cities = cities
+        self.current_city = current_city
+        self.remaining_cities = list(set(range(nb_cities)) - set(cities))
         self.path_cost_from_root = path_cost_from_root
         self.total_cost = total_cost
-        self.is_goal = len(cities) == nb_cities
+        self.is_goal = len(cities) == (nb_cities + 1)
 
     def state_from_action(self, action):
         '''
@@ -226,11 +234,28 @@ class State:
             Outputs:
                 Next state given the action
         '''
-        return State(cities=self.cities.append(action[0]), 
+        next_cities = [i for i in self.cities]
+        next_cities.append(action[0])
+        return State(action[0], cities=next_cities, 
                     path_cost_from_root=self.path_cost_from_root+action[1],
                     total_cost=self.total_cost+action[1]+action[2])
 
-def as_search(distance_matrix, ran_start=True):
+    def get_child_states(self):
+        child_states = []
+        if len(self.remaining_cities):
+            for possible_city in self.remaining_cities:
+                path_cost = distance_matrix[self.current_city][possible_city]
+                heuristic_cost = heuristic()
+                child_states.append(self.state_from_action((possible_city, path_cost, heuristic_cost)))
+        else:
+            global initial_city
+            path_cost = distance_matrix[self.current_city][initial_city]
+            heuristic_cost = heuristic()
+            child_states.append(self.state_from_action((initial_city, path_cost, heuristic_cost)))
+
+        return child_states
+
+def as_search(ran_start=True):
     '''
         Inputs:
             distance_matrix - Symmetric matrix of distances between cities
@@ -242,13 +267,20 @@ def as_search(distance_matrix, ran_start=True):
     tour = [] # Return value (placeholder)
     fringe = [] # All states on fringe to be examined
 
-    initial_city = random.random.randint(nb_cities-1) if ran_start else 0
-    initial_state = State()
+    global initial_city
+    initial_city = random.randint(0, nb_cities-1) if ran_start else 0
+    initial_state = State(initial_city, cities=[initial_city])
 
-
-
+    child_states = initial_state.get_child_states()
+    for child in child_states:
+        print(f"{child.cities}\n\t\t")
+        print("\n\t\t".join(", ".join(str(c) for c in x.cities) for x in child.get_child_states()))
+        print("\n")
+        input()
 
     return tour, len(tour)
+
+tour, tour_length = as_search(ran_start=False)
 #######################################################################################################
 ############ the code for your algorithm should now be complete and you should have        ############
 ############ computed a tour held in the list "tour" of length "tour_length"               ############
@@ -260,6 +292,7 @@ def as_search(distance_matrix, ran_start=True):
 ############ start of code to verify that the constructed tour and its length are valid    ############
 #######################################################################################################
 
+'''
 check_tour_length = 0
 for i in range(0,num_cities-1):
     check_tour_length = check_tour_length + distance_matrix[tour[i]][tour[i+1]]
@@ -300,7 +333,7 @@ if flag == "good":
     print("I have successfully written the tour to the output file " + output_file_name + ".")
     
     
-
+'''
 
 
 
