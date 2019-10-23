@@ -210,8 +210,37 @@ codes_and_names = {'BF' : 'brute-force search',
 ############    now the code for your algorithm should begin                               ############
 #######################################################################################################
 
-nb_cities = 175
-initial_city = 0
+'''
+    A* Search Algorithm
+
+    Structure:
+        Some kind of State class that acts as a node in the search tree.
+        It Should contain the current State (list of cities already visited)
+        and the f cost to visit the node. Other information may be stored there.
+        It should also have the capability to produce all possible child states
+        from the current state by checking all actions. So we can add them to
+        the fringe.
+
+    Algorithm:
+        1)  Randomly pick, or pick the first, city to visit. Generate an initial state
+            from this.
+        2)  Get all child states from this initial state and compute path cost to visit
+            plus heuristic cost.
+        3)  Add all these child states to the fringe.
+        4)  Select the state in the fringe with the lowest combined path cost and heuristic cost.
+        5)  Repeat by expanding the selected state and considering all on fringe.
+        6)  Halt when there is a goal state in the fringe that has the lowest f cost.
+
+    Possible Heuristics:
+        Greedy Search from current node. ie. continue tour picking lowest at each point.
+        Take average of path costs leading from this state.
+        Lower score longer/shorter the current path is.
+        Lower score for more balanced exploration
+        A weird mix of many.
+'''
+
+nb_cities = 175 # Should probably read this from file.
+initial_city = 0 # Ask if randomly picked or if should start from same each time.
 
 # Heuristic cost algorithm
 def heuristic():
