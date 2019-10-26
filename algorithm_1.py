@@ -240,6 +240,15 @@ codes_and_names = {'BF' : 'brute-force search',
 '''
 
 import bisect
+import numpy as np #for analysing dataset
+matrix = np.array(distance_matrix)
+print(matrix)
+print(matrix.shape)
+print(np.average(matrix))
+
+print(np.average(matrix)*matrix.shape[0])
+
+#exit()
 
 nb_cities = len(distance_matrix) 
 
@@ -251,7 +260,7 @@ class State:
         self.remaining_cities = list(set(range(nb_cities)) - set(cities))
         self.path_cost_from_root = path_cost_from_root
         self.is_goal = len(cities) == (nb_cities + 1)
-        self.total_cost = path_cost_from_root + self.heuristic()
+        self.total_cost = path_cost_from_root / 2 + self.heuristic()
 
     # Heuristic cost algorithm
     # Mean of edges from state
@@ -271,19 +280,22 @@ class State:
         path_costs = [distance_matrix[self.current_city][x] for x in self.remaining_cities]
         return min(path_costs)
     '''
+
+    # Sum to start node
+    
     def heuristic(self):
         if not len(self.remaining_cities):
             return 0
 
-        closest_city_cost = min(distance_matrix[self.current_city][x] for x in self.remaining_cities)
+        #closest_city_cost = min(distance_matrix[self.current_city][x] for x in self.remaining_cities)
         sum_to_start = sum(distance_matrix[x][self.cities[0]] for x in self.remaining_cities)
 
-        return closest_city_cost + sum_to_start
+        return sum_to_start
 
     def state_from_action(self, action):
         '''
             Inputs:
-                action - (next_city, path_cost, heuristic_cost(?))
+                action - (next_city, path_cost)
             Outputs:
                 Next state given the action
         '''
@@ -299,7 +311,6 @@ class State:
                 path_cost = distance_matrix[self.current_city][possible_city]
                 child_states.append(self.state_from_action((possible_city, path_cost)))
         else:
-            global initial_city
             path_cost = distance_matrix[self.current_city][self.cities[0]]
             child_states.append(self.state_from_action((self.cities[0], path_cost)))
 
@@ -325,6 +336,10 @@ def as_search(ran_start=True):
             tour_length - Total cost of the tour
     '''
 
+    # DEBUG STUFF
+    #longest = 0
+    ##
+
     initial_city = random.randint(0, nb_cities-1) if ran_start else 0
     initial_state = State(initial_city, cities=[initial_city])
 
@@ -334,16 +349,22 @@ def as_search(ran_start=True):
     finish = False
     while not finish:
         min_state = get_min_state(fringe)
+        
+        '''
+        if len(min_state.cities) > longest:
+            print(min_state.cities)
+            longest = len(min_state.cities)
+        '''
+
         if min_state.is_goal:
             finish = True
             tour = min_state.cities
             tour_length = min_state.path_cost_from_root
             break
         fringe.remove(min_state)
-
         child_states = min_state.get_child_states()
         for s in child_states:
-            bisect.insort(fringe, s)
+            bisect.insort_left(fringe, s)
         #fringe = fringe + min_state.get_child_states()
 
     '''
