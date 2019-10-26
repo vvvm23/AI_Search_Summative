@@ -239,22 +239,46 @@ codes_and_names = {'BF' : 'brute-force search',
         A weird mix of many.
 '''
 
-nb_cities = 175 # Should probably read this from file.
-initial_city = 0 # Ask if randomly picked or if should start from same each time.
+import bisect
 
-# Heuristic cost algorithm
-def heuristic():
-    return 0
+nb_cities = len(distance_matrix) 
 
 class State:
-    def __init__(self, current_city, cities=[], path_cost_from_root=0, total_cost=0):
+    def __init__(self, current_city, cities=[], path_cost_from_root=0):
         global nb_cities
         self.cities = cities
         self.current_city = current_city
         self.remaining_cities = list(set(range(nb_cities)) - set(cities))
         self.path_cost_from_root = path_cost_from_root
-        self.total_cost = total_cost
         self.is_goal = len(cities) == (nb_cities + 1)
+        self.total_cost = path_cost_from_root + self.heuristic()
+
+    # Heuristic cost algorithm
+    # Mean of edges from state
+    
+    '''def heuristic(self):
+        if not len(self.remaining_cities):
+            return 0
+        path_costs = [distance_matrix[self.current_city][x] for x in self.remaining_cities]
+        return sum(path_costs)/len(path_costs)
+    '''
+    # Min edge from state
+    '''
+    def heuristic(self):
+        if not len(self.remaining_cities):
+            return 0
+
+        path_costs = [distance_matrix[self.current_city][x] for x in self.remaining_cities]
+        return min(path_costs)
+    '''
+    def heuristic(self):
+        if not len(self.remaining_cities):
+            return 0
+
+        closest_city_cost = min(distance_matrix[self.current_city][x] for x in self.remaining_cities)
+        sum_to_start = sum(distance_matrix[x][self.cities[0]] for x in self.remaining_cities)
+
+        return closest_city_cost + sum_to_start
 
     def state_from_action(self, action):
         '''
@@ -266,23 +290,30 @@ class State:
         next_cities = [i for i in self.cities]
         next_cities.append(action[0])
         return State(action[0], cities=next_cities, 
-                    path_cost_from_root=self.path_cost_from_root+action[1],
-                    total_cost=self.total_cost+action[1]+action[2])
+                    path_cost_from_root=self.path_cost_from_root+action[1])
 
     def get_child_states(self):
         child_states = []
         if len(self.remaining_cities):
             for possible_city in self.remaining_cities:
                 path_cost = distance_matrix[self.current_city][possible_city]
-                heuristic_cost = heuristic()
-                child_states.append(self.state_from_action((possible_city, path_cost, heuristic_cost)))
+                child_states.append(self.state_from_action((possible_city, path_cost)))
         else:
             global initial_city
-            path_cost = distance_matrix[self.current_city][initial_city]
-            heuristic_cost = heuristic()
-            child_states.append(self.state_from_action((initial_city, path_cost, heuristic_cost)))
+            path_cost = distance_matrix[self.current_city][self.cities[0]]
+            child_states.append(self.state_from_action((self.cities[0], path_cost)))
 
         return child_states
+
+    def __lt__(self, other):
+        return self.total_cost < other.total_cost
+
+def min_key(x):
+    return x.total_cost
+
+def get_min_state(fringe):
+    #return min(fringe, key=min_key)
+    return fringe[0]
 
 def as_search(ran_start=True):
     '''
@@ -293,23 +324,42 @@ def as_search(ran_start=True):
             tour - List of cities visited in order
             tour_length - Total cost of the tour
     '''
-    tour = [] # Return value (placeholder)
-    fringe = [] # All states on fringe to be examined
 
-    global initial_city
     initial_city = random.randint(0, nb_cities-1) if ran_start else 0
     initial_state = State(initial_city, cities=[initial_city])
 
-    child_states = initial_state.get_child_states()
+    fringe = initial_state.get_child_states()
+    fringe.sort(key=min_key)
+
+    finish = False
+    while not finish:
+        min_state = get_min_state(fringe)
+        if min_state.is_goal:
+            finish = True
+            tour = min_state.cities
+            tour_length = min_state.path_cost_from_root
+            break
+        fringe.remove(min_state)
+
+        child_states = min_state.get_child_states()
+        for s in child_states:
+            bisect.insort(fringe, s)
+        #fringe = fringe + min_state.get_child_states()
+
+    '''
     for child in child_states:
         print(f"{child.cities}\n\t\t")
         print("\n\t\t".join(", ".join(str(c) for c in x.cities) for x in child.get_child_states()))
         print("\n")
         input()
+    '''
 
-    return tour, len(tour)
+    return tour, tour_length
 
+start_time = time.time()
 tour, tour_length = as_search(ran_start=False)
+end_time = time.time()
+print(f"A* search took {end_time - start_time}")
 #######################################################################################################
 ############ the code for your algorithm should now be complete and you should have        ############
 ############ computed a tour held in the list "tour" of length "tour_length"               ############
@@ -321,7 +371,7 @@ tour, tour_length = as_search(ran_start=False)
 ############ start of code to verify that the constructed tour and its length are valid    ############
 #######################################################################################################
 
-'''
+
 check_tour_length = 0
 for i in range(0,num_cities-1):
     check_tour_length = check_tour_length + distance_matrix[tour[i]][tour[i+1]]
@@ -362,7 +412,7 @@ if flag == "good":
     print("I have successfully written the tour to the output file " + output_file_name + ".")
     
     
-'''
+
 
 
 
