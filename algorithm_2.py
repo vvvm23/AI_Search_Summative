@@ -184,7 +184,7 @@ my_last_name = "McKinney"
 ############    SA = simulated annealing search                                            ############
 ############    GA = genetic algorithm                                                     ############
 
-alg_code = "BG"
+alg_code = "IA"
 
 ############ you can also add a note that will be added to the end of the output file if   ############
 ############ you like, e.g., "in my basic greedy search, I broke ties by always visiting   ############
@@ -204,7 +204,8 @@ codes_and_names = {'BF' : 'brute-force search',
                    'AS' : 'A* search',
                    'HC' : 'hilling climbing search',
                    'SA' : 'simulated annealing search',
-                   'GA' : 'genetic algorithm'}
+                   'GA' : 'genetic algorithm',
+                   'IA' : 'iterative deepening with A* search'}
 
 #######################################################################################################
 ############    now the code for your algorithm should begin                               ############

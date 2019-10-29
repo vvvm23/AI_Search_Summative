@@ -282,15 +282,16 @@ class State:
     '''
 
     # Sum to start node
-    
+    '''
     def heuristic(self):
-        if not len(self.remaining_cities):
-            return 0
+        min_cost, index = min((v, i) if not i == self.current_city else (999999, i) for (i, v) in enumerate(distance_matrix[self.current_city]))
+        cost_to_start = sum(distance_matrix[x][self.cities[0]] if not x == index else 0 for x in self.remaining_cities)
+        return min_cost + cost_to_start
+    '''
 
-        #closest_city_cost = min(distance_matrix[self.current_city][x] for x in self.remaining_cities)
-        sum_to_start = sum(distance_matrix[x][self.cities[0]] for x in self.remaining_cities)
+    # Second heuristic in pdf
+    def heuristic(self):
 
-        return sum_to_start
 
     def state_from_action(self, action):
         '''
@@ -431,19 +432,3 @@ if flag == "good":
         f.write("\nNOTE = " + added_note)
     f.close()
     print("I have successfully written the tour to the output file " + output_file_name + ".")
-    
-    
-
-
-
-
-
-
-
-
-
-
-
-    
-
-
