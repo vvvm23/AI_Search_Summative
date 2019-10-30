@@ -289,9 +289,24 @@ class State:
         return min_cost + cost_to_start
     '''
 
-    # Second heuristic in pdf
+    # greedy continuation heuristic
     def heuristic(self):
+        if self.is_goal:
+            return 0
 
+        total = 0
+        g_remaining_cities = [x for x in self.remaining_cities]
+        g_current_city = self.current_city
+
+        while len(g_remaining_cities):
+            g_current_costs = [(distance_matrix[g_current_city][x], x) for x in g_remaining_cities]
+            total_add, g_current_city = min(g_current_costs)
+            total += total_add
+            g_remaining_cities.remove(g_current_city)
+
+        total += distance_matrix[g_current_city][self.cities[0]]
+
+        return total
 
     def state_from_action(self, action):
         '''
@@ -320,6 +335,24 @@ class State:
     def __lt__(self, other):
         return self.total_cost < other.total_cost
 
+# given a state, move to completion in greedy manner
+def continue_greedily(state):
+    total = state.path_cost_from_root
+    g_remaining_cities = [x for x in state.remaining_cities]
+    g_current_city = state.current_city
+    g_cities = [x for x in state.cities]
+
+    while len(g_remaining_cities):
+        g_current_costs = [(distance_matrix[g_current_city][x], x) for x in g_remaining_cities]
+        total_add, g_current_city = min(g_current_costs)
+        total += total_add
+        g_remaining_cities.remove(g_current_city)
+        g_cities.append(g_current_city)
+
+    total += distance_matrix[g_current_city][state.cities[0]]
+    g_cities.append(state.cities[0])
+    return g_cities, total
+
 def min_key(x):
     return x.total_cost
 
@@ -337,9 +370,9 @@ def as_search(ran_start=True):
             tour_length - Total cost of the tour
     '''
 
-    # DEBUG STUFF
-    #longest = 0
-    ##
+    KILL_TIME_MAX = 50.0 # Ensure this is less than 60.0 including time to finish.
+
+    kill_time_start = time.time()
 
     initial_city = random.randint(0, nb_cities-1) if ran_start else 0
     initial_state = State(initial_city, cities=[initial_city])
@@ -351,11 +384,12 @@ def as_search(ran_start=True):
     while not finish:
         min_state = get_min_state(fringe)
         
-        '''
-        if len(min_state.cities) > longest:
-            print(min_state.cities)
-            longest = len(min_state.cities)
-        '''
+        if time.time() - kill_time_start > KILL_TIME_MAX:
+            # if time exceeds, greedily finish.
+            print("Kill time exceeded. Terminating.")
+            print("Calculating Greedily from current minimum.")
+            tour, tour_length = continue_greedily(min_state)
+            break
 
         if min_state.is_goal:
             finish = True
@@ -367,6 +401,8 @@ def as_search(ran_start=True):
         for s in child_states:
             bisect.insort_left(fringe, s)
         #fringe = fringe + min_state.get_child_states()
+
+
 
     '''
     for child in child_states:
