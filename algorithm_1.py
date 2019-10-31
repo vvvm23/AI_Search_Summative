@@ -240,17 +240,25 @@ codes_and_names = {'BF' : 'brute-force search',
 '''
 
 import bisect
-import numpy as np #for analysing dataset
-matrix = np.array(distance_matrix)
-print(matrix)
-print(matrix.shape)
-print(np.average(matrix))
+import numpy as np
 
-print(np.average(matrix)*matrix.shape[0])
-
-#exit()
+true_start = time.time()
 
 nb_cities = len(distance_matrix) 
+print(np.average(np.array(distance_matrix))*nb_cities)
+
+#distance_matrix = {y: {x: distance_matrix[y][x] for x in range(nb_cities)} for y in range(nb_cities)}
+
+'''
+dict_distance_matrix = {}
+for y in range(nb_cities):
+    dict_distance_matrix[y] = {}
+    for x in range(nb_cities):
+        dict_distance_matrix[y][x] = distance_matrix[y][x]
+
+distance_matrix = dict_distance_matrix
+'''
+
 
 class State:
     def __init__(self, current_city, cities=[], path_cost_from_root=0):
@@ -290,6 +298,7 @@ class State:
     '''
 
     # greedy continuation heuristic
+    # this one is pretty good, tad slow. but make copies if we change further
     def heuristic(self):
         if self.is_goal:
             return 0
@@ -417,7 +426,10 @@ def as_search(ran_start=True):
 start_time = time.time()
 tour, tour_length = as_search(ran_start=False)
 end_time = time.time()
-print(f"A* search took {end_time - start_time}")
+true_end = time.time()
+print(f"A* search took \t{end_time - start_time}")
+print(f"Program time \t{true_end - true_start}")
+
 #######################################################################################################
 ############ the code for your algorithm should now be complete and you should have        ############
 ############ computed a tour held in the list "tour" of length "tour_length"               ############
