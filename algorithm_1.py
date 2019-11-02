@@ -244,16 +244,16 @@ import numpy as np
 
 true_start = time.time()
 
-nb_cities = len(distance_matrix) 
-print(np.average(np.array(distance_matrix))*nb_cities)
+NB_CITIES = len(distance_matrix) 
+print(np.average(np.array(distance_matrix))*NB_CITIES)
 
-#distance_matrix = {y: {x: distance_matrix[y][x] for x in range(nb_cities)} for y in range(nb_cities)}
+#distance_matrix = {y: {x: distance_matrix[y][x] for x in range(NB_CITIES)} for y in range(NB_CITIES)}
 
 '''
 dict_distance_matrix = {}
-for y in range(nb_cities):
+for y in range(NB_CITIES):
     dict_distance_matrix[y] = {}
-    for x in range(nb_cities):
+    for x in range(NB_CITIES):
         dict_distance_matrix[y][x] = distance_matrix[y][x]
 
 distance_matrix = dict_distance_matrix
@@ -261,13 +261,15 @@ distance_matrix = dict_distance_matrix
 
 
 class State:
-    def __init__(self, current_city, cities=[], path_cost_from_root=0):
-        global nb_cities
+    def __init__(self, current_city, cities=[], path_cost_from_root=0, nb_cities=None, nb_remaining=None):
+        global NB_CITIES
         self.cities = cities
+        self.nb_cities = len(cities) if nb_cities == None else nb_cities
         self.current_city = current_city
-        self.remaining_cities = list(set(range(nb_cities)) - set(cities))
+        self.remaining_cities = list(set(range(NB_CITIES)) - set(cities))
+        self.nb_remaining = len(self.remaining_cities) if nb_remaining == None else nb_remaining
         self.path_cost_from_root = path_cost_from_root
-        self.is_goal = len(cities) == (nb_cities + 1)
+        self.is_goal = nb_cities == (NB_CITIES + 1)
         self.total_cost = path_cost_from_root / 2 + self.heuristic()
 
     # Heuristic cost algorithm
@@ -307,11 +309,14 @@ class State:
         g_remaining_cities = [x for x in self.remaining_cities]
         g_current_city = self.current_city
 
-        while len(g_remaining_cities):
+        g_nb_remaining = self.nb_remaining
+
+        while g_nb_remaining:
             g_current_costs = [(distance_matrix[g_current_city][x], x) for x in g_remaining_cities]
             total_add, g_current_city = min(g_current_costs)
             total += total_add
             g_remaining_cities.remove(g_current_city)
+            g_nb_remaining -= 1
 
         total += distance_matrix[g_current_city][self.cities[0]]
 
@@ -327,11 +332,13 @@ class State:
         next_cities = [i for i in self.cities]
         next_cities.append(action[0])
         return State(action[0], cities=next_cities, 
-                    path_cost_from_root=self.path_cost_from_root+action[1])
+                    path_cost_from_root=self.path_cost_from_root+action[1],
+                    nb_cities=self.nb_cities+1,
+                    nb_remaining=self.nb_remaining-1)
 
     def get_child_states(self):
         child_states = []
-        if len(self.remaining_cities):
+        if self.nb_remaining:
             for possible_city in self.remaining_cities:
                 path_cost = distance_matrix[self.current_city][possible_city]
                 child_states.append(self.state_from_action((possible_city, path_cost)))
@@ -351,12 +358,15 @@ def continue_greedily(state):
     g_current_city = state.current_city
     g_cities = [x for x in state.cities]
 
-    while len(g_remaining_cities):
+    nb_remaining = len(g_remaining_cities)
+
+    while nb_remaining:
         g_current_costs = [(distance_matrix[g_current_city][x], x) for x in g_remaining_cities]
         total_add, g_current_city = min(g_current_costs)
         total += total_add
         g_remaining_cities.remove(g_current_city)
         g_cities.append(g_current_city)
+        nb_remaining -= 1
 
     total += distance_matrix[g_current_city][state.cities[0]]
     g_cities.append(state.cities[0])
@@ -379,11 +389,11 @@ def as_search(ran_start=True):
             tour_length - Total cost of the tour
     '''
 
-    KILL_TIME_MAX = 50.0 # Ensure this is less than 60.0 including time to finish.
+    KILL_TIME_MAX = 52.0 # Ensure this is less than 60.0 including time to finish.
 
     kill_time_start = time.time()
 
-    initial_city = random.randint(0, nb_cities-1) if ran_start else 0
+    initial_city = random.randint(0, NB_CITIES-1) if ran_start else 0
     initial_state = State(initial_city, cities=[initial_city])
 
     fringe = initial_state.get_child_states()
@@ -408,18 +418,11 @@ def as_search(ran_start=True):
         fringe.remove(min_state)
         child_states = min_state.get_child_states()
         for s in child_states:
+            # Maybe a better option would be to track the minimum state so far
+            # pick this one in the next iteration.
+            # Only sort if no child state is smaller than current min? 
+            # May not work, but just want to minimise number of sorts.
             bisect.insort_left(fringe, s)
-        #fringe = fringe + min_state.get_child_states()
-
-
-
-    '''
-    for child in child_states:
-        print(f"{child.cities}\n\t\t")
-        print("\n\t\t".join(", ".join(str(c) for c in x.cities) for x in child.get_child_states()))
-        print("\n")
-        input()
-    '''
 
     return tour, tour_length
 
