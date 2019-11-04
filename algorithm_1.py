@@ -263,7 +263,8 @@ distance_matrix = dict_distance_matrix
 class State:
     def __init__(self, current_city, cities=[], path_cost_from_root=0, nb_cities=None, nb_remaining=None):
         global NB_CITIES
-        self.cities = cities
+        self.cities = cities # Potentially rework this as a set. O(1) removal instead of O(n)
+                             # We would have to redefine what a state is. Sets cannot have duplicates
         self.nb_cities = len(cities) if nb_cities == None else nb_cities
         self.current_city = current_city
         self.remaining_cities = list(set(range(NB_CITIES)) - set(cities))
@@ -389,7 +390,7 @@ def as_search(ran_start=True):
             tour_length - Total cost of the tour
     '''
 
-    KILL_TIME_MAX = 52.0 # Ensure this is less than 60.0 including time to finish.
+    KILL_TIME_MAX = 50.0 # Ensure this is less than 60.0 including time to finish.
 
     kill_time_start = time.time()
 
@@ -399,8 +400,7 @@ def as_search(ran_start=True):
     fringe = initial_state.get_child_states()
     fringe.sort(key=min_key)
 
-    finish = False
-    while not finish:
+    while True:
         min_state = get_min_state(fringe)
         
         if time.time() - kill_time_start > KILL_TIME_MAX:
@@ -411,7 +411,6 @@ def as_search(ran_start=True):
             break
 
         if min_state.is_goal:
-            finish = True
             tour = min_state.cities
             tour_length = min_state.path_cost_from_root
             break
