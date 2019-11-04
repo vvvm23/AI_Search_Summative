@@ -265,6 +265,8 @@ class State:
         global NB_CITIES
         self.cities = cities # Potentially rework this as a set. O(1) removal instead of O(n)
                              # We would have to redefine what a state is. Sets cannot have duplicates
+                             # Have seperate variable that keeps track of start city, or make it constant
+                             # rather than referencing self.cities[0]
         self.nb_cities = len(cities) if nb_cities == None else nb_cities
         self.current_city = current_city
         self.remaining_cities = list(set(range(NB_CITIES)) - set(cities))
