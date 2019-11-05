@@ -184,7 +184,7 @@ my_last_name = "McKinney"
 ############    SA = simulated annealing search                                            ############
 ############    GA = genetic algorithm                                                     ############
 
-alg_code = "AS"
+alg_code = "IA"
 
 ############ you can also add a note that will be added to the end of the output file if   ############
 ############ you like, e.g., "in my basic greedy search, I broke ties by always visiting   ############
@@ -204,235 +204,23 @@ codes_and_names = {'BF' : 'brute-force search',
                    'AS' : 'A* search',
                    'HC' : 'hilling climbing search',
                    'SA' : 'simulated annealing search',
-                   'GA' : 'genetic algorithm'}
+                   'GA' : 'genetic algorithm',
+                   'IA' : 'iterative deepening with A* search'}
 
 #######################################################################################################
 ############    now the code for your algorithm should begin                               ############
 #######################################################################################################
 
-'''
-    A* Search Algorithm
-
-    Structure:
-        Some kind of State class that acts as a node in the search tree.
-        It Should contain the current State (list of cities already visited)
-        and the f cost to visit the node. Other information may be stored there.
-        It should also have the capability to produce all possible child states
-        from the current state by checking all actions. So we can add them to
-        the fringe.
-
-    Algorithm:
-        1)  Randomly pick, or pick the first, city to visit. Generate an initial state
-            from this.
-        2)  Get all child states from this initial state and compute path cost to visit
-            plus heuristic cost.
-        3)  Add all these child states to the fringe.
-        4)  Select the state in the fringe with the lowest combined path cost and heuristic cost.
-        5)  Repeat by expanding the selected state and considering all on fringe.
-        6)  Halt when there is a goal state in the fringe that has the lowest f cost.
-
-    Possible Heuristics:
-        Greedy Search from current node. ie. continue tour picking lowest at each point.
-        Take average of path costs leading from this state.
-        Lower score longer/shorter the current path is.
-        Lower score for more balanced exploration
-        A weird mix of many.
-'''
-
-import bisect
-import numpy as np
-
-true_start = time.time()
-
-NB_CITIES = len(distance_matrix) 
-print(np.average(np.array(distance_matrix))*NB_CITIES)
-
-#distance_matrix = {y: {x: distance_matrix[y][x] for x in range(NB_CITIES)} for y in range(NB_CITIES)}
-
-'''
-dict_distance_matrix = {}
-for y in range(NB_CITIES):
-    dict_distance_matrix[y] = {}
-    for x in range(NB_CITIES):
-        dict_distance_matrix[y][x] = distance_matrix[y][x]
-
-distance_matrix = dict_distance_matrix
-'''
-
-
-class State:
-    def __init__(self, current_city, cities=[], path_cost_from_root=0, nb_cities=None, nb_remaining=None):
-        global NB_CITIES
-        self.cities = cities # Potentially rework this as a set. O(1) removal instead of O(n)
-                             # We would have to redefine what a state is. Sets cannot have duplicates
-                             # Have seperate variable that keeps track of start city, or make it constant
-                             # rather than referencing self.cities[0]
-        self.nb_cities = len(cities) if nb_cities == None else nb_cities
-        self.current_city = current_city
-        self.remaining_cities = list(set(range(NB_CITIES)) - set(cities))
-        self.nb_remaining = len(self.remaining_cities) if nb_remaining == None else nb_remaining
-        self.path_cost_from_root = path_cost_from_root
-        self.is_goal = nb_cities == (NB_CITIES + 1)
-        self.total_cost = path_cost_from_root / 2 + self.heuristic()
-
-    # Heuristic cost algorithm
-    # Mean of edges from state
-    
-    '''def heuristic(self):
-        if not len(self.remaining_cities):
-            return 0
-        path_costs = [distance_matrix[self.current_city][x] for x in self.remaining_cities]
-        return sum(path_costs)/len(path_costs)
-    '''
-    # Min edge from state
-    '''
-    def heuristic(self):
-        if not len(self.remaining_cities):
-            return 0
-
-        path_costs = [distance_matrix[self.current_city][x] for x in self.remaining_cities]
-        return min(path_costs)
-    '''
-
-    # Sum to start node
-    '''
-    def heuristic(self):
-        min_cost, index = min((v, i) if not i == self.current_city else (999999, i) for (i, v) in enumerate(distance_matrix[self.current_city]))
-        cost_to_start = sum(distance_matrix[x][self.cities[0]] if not x == index else 0 for x in self.remaining_cities)
-        return min_cost + cost_to_start
-    '''
-
-    # greedy continuation heuristic
-    # this one is pretty good, tad slow. but make copies if we change further
-    def heuristic(self):
-        if self.is_goal:
-            return 0
-
-        total = 0
-        g_remaining_cities = [x for x in self.remaining_cities]
-        g_current_city = self.current_city
-
-        g_nb_remaining = self.nb_remaining
-
-        while g_nb_remaining:
-            g_current_costs = [(distance_matrix[g_current_city][x], x) for x in g_remaining_cities]
-            total_add, g_current_city = min(g_current_costs)
-            total += total_add
-            g_remaining_cities.remove(g_current_city)
-            g_nb_remaining -= 1
-
-        total += distance_matrix[g_current_city][self.cities[0]]
-
-        return total
-
-    def state_from_action(self, action):
-        '''
-            Inputs:
-                action - (next_city, path_cost)
-            Outputs:
-                Next state given the action
-        '''
-        next_cities = [i for i in self.cities]
-        next_cities.append(action[0])
-        return State(action[0], cities=next_cities, 
-                    path_cost_from_root=self.path_cost_from_root+action[1],
-                    nb_cities=self.nb_cities+1,
-                    nb_remaining=self.nb_remaining-1)
-
-    def get_child_states(self):
-        child_states = []
-        if self.nb_remaining:
-            for possible_city in self.remaining_cities:
-                path_cost = distance_matrix[self.current_city][possible_city]
-                child_states.append(self.state_from_action((possible_city, path_cost)))
-        else:
-            path_cost = distance_matrix[self.current_city][self.cities[0]]
-            child_states.append(self.state_from_action((self.cities[0], path_cost)))
-
-        return child_states
-
-    def __lt__(self, other):
-        return self.total_cost < other.total_cost
-
-# given a state, move to completion in greedy manner
-def continue_greedily(state):
-    total = state.path_cost_from_root
-    g_remaining_cities = [x for x in state.remaining_cities]
-    g_current_city = state.current_city
-    g_cities = [x for x in state.cities]
-
-    nb_remaining = len(g_remaining_cities)
-
-    while nb_remaining:
-        g_current_costs = [(distance_matrix[g_current_city][x], x) for x in g_remaining_cities]
-        total_add, g_current_city = min(g_current_costs)
-        total += total_add
-        g_remaining_cities.remove(g_current_city)
-        g_cities.append(g_current_city)
-        nb_remaining -= 1
-
-    total += distance_matrix[g_current_city][state.cities[0]]
-    g_cities.append(state.cities[0])
-    return g_cities, total
-
-def min_key(x):
-    return x.total_cost
-
-def get_min_state(fringe):
-    #return min(fringe, key=min_key)
-    return fringe[0]
-
-def as_search(ran_start=True):
-    '''
-        Inputs:
-            distance_matrix - Symmetric matrix of distances between cities
-            ran_start - Whether to choose random start or from node 0. Default 0.
-        Outputs:
-            tour - List of cities visited in order
-            tour_length - Total cost of the tour
-    '''
-
-    KILL_TIME_MAX = 50.0 # Ensure this is less than 60.0 including time to finish.
-
-    kill_time_start = time.time()
-
-    initial_city = random.randint(0, NB_CITIES-1) if ran_start else 0
-    initial_state = State(initial_city, cities=[initial_city])
-
-    fringe = initial_state.get_child_states()
-    fringe.sort(key=min_key)
-
-    while True:
-        min_state = get_min_state(fringe)
         
-        if time.time() - kill_time_start > KILL_TIME_MAX:
-            # if time exceeds, greedily finish.
-            print("Kill time exceeded. Terminating.")
-            print("Calculating Greedily from current minimum.")
-            tour, tour_length = continue_greedily(min_state)
-            break
 
-        if min_state.is_goal:
-            tour = min_state.cities
-            tour_length = min_state.path_cost_from_root
-            break
-        fringe.remove(min_state)
-        child_states = min_state.get_child_states()
-        for s in child_states:
-            # Maybe a better option would be to track the minimum state so far
-            # pick this one in the next iteration.
-            # Only sort if no child state is smaller than current min? 
-            # May not work, but just want to minimise number of sorts.
-            bisect.insort_left(fringe, s)
 
-    return tour, tour_length
 
-start_time = time.time()
-tour, tour_length = as_search(ran_start=False)
-end_time = time.time()
-true_end = time.time()
-print(f"A* search took \t{end_time - start_time}")
-print(f"Program time \t{true_end - true_start}")
+
+
+
+
+
+
 
 #######################################################################################################
 ############ the code for your algorithm should now be complete and you should have        ############
@@ -444,7 +232,6 @@ print(f"Program time \t{true_end - true_start}")
 #######################################################################################################
 ############ start of code to verify that the constructed tour and its length are valid    ############
 #######################################################################################################
-
 
 check_tour_length = 0
 for i in range(0,num_cities-1):
@@ -484,3 +271,19 @@ if flag == "good":
         f.write("\nNOTE = " + added_note)
     f.close()
     print("I have successfully written the tour to the output file " + output_file_name + ".")
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
