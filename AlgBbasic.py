@@ -211,14 +211,9 @@ codes_and_names = {'BF' : 'brute-force search',
 ############    now the code for your algorithm should begin                               ############
 #######################################################################################################
 
-
-import bisect
-import numpy as np
-
 true_start = time.time()
 
 NB_CITIES = len(distance_matrix) 
-print(np.average(np.array(distance_matrix))*NB_CITIES)
 
 class State:
     def __init__(self, current_city, cities=[], path_cost_from_root=0, nb_cities=None, nb_remaining=None):
@@ -243,12 +238,16 @@ class State:
 
         g_nb_remaining = self.nb_remaining
 
+
         while g_nb_remaining:
             g_current_costs = [(distance_matrix[g_current_city][x], x) for x in g_remaining_cities]
             total_add, g_current_city = min(g_current_costs)
             total += total_add
             g_remaining_cities.remove(g_current_city)
             g_nb_remaining -= 1
+
+            if self.nb_remaining - g_nb_remaining == 30:
+                break
 
         total += distance_matrix[g_current_city][self.cities[0]]
 
@@ -315,7 +314,7 @@ def eval_fringe(states, T):
     fringe = []
     min_T = 9999999 # remove magic number
     for s in states:
-        if s.total_cost < T:
+        if s.total_cost <= T:
             fringe.append(s)
             continue
         
@@ -339,16 +338,18 @@ def ida_search(ran_start=True):
 
     kill_time_start = time.time()
 
-    T = 0
+    initial_city = random.randint(0, NB_CITIES-1) if ran_start else 0
+    initial_state = State(initial_city, cities=[initial_city])
+    T = initial_state.total_cost
 
     running = True
 
     while running:
 
-        initial_city = random.randint(0, NB_CITIES-1) if ran_start else 0
-        initial_state = State(initial_city, cities=[initial_city])
+        #initial_city = random.randint(0, NB_CITIES-1) if ran_start else 0
+        #initial_state = State(initial_city, cities=[initial_city])
 
-        T = initial_state.total_cost
+        #T = initial_state.total_cost / 2
         next_T = 9999999
 
         fringe = initial_state.get_child_states()
@@ -361,7 +362,7 @@ def ida_search(ran_start=True):
         while True:
             if not len(fringe):
                 T = next_T
-                print(f"Empty fringe. Killing and increasing T to {T}")
+                #print(f"Empty fringe. Killing and increasing T to {T}")
                 break
 
             #min_state = get_min_state(fringe)
@@ -375,16 +376,13 @@ def ida_search(ran_start=True):
                 running = False
                 break
             
-
             if next_state.is_goal:
                 tour = next_state.cities
                 tour_length = next_state.path_cost_from_root
                 running = False
                 break
-            #fringe.remove(min_state)
 
             child_states = next_state.get_child_states()
-
             child_states, _next_T = eval_fringe(child_states, T)
 
             if _next_T < next_T and _next_T > T:
