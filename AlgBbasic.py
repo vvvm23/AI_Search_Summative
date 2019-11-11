@@ -315,7 +315,7 @@ def eval_fringe(states, T):
     fringe = []
     min_T = 9999999 # remove magic number
     for s in states:
-        if s.total_cost <= T:
+        if s.total_cost < T:
             fringe.append(s)
             continue
         
@@ -349,14 +349,14 @@ def ida_search(ran_start=True):
         initial_state = State(initial_city, cities=[initial_city])
 
         T = initial_state.total_cost
-        next_T = T
+        next_T = 9999999
 
         fringe = initial_state.get_child_states()
         fringe, _next_T = eval_fringe(fringe, T)
         if _next_T < next_T and _next_T > T:
             next_T = _next_T
 
-        fringe.sort(key=min_key)
+        #fringe.sort(key=min_key)
 
         while True:
             if not len(fringe):
@@ -364,33 +364,34 @@ def ida_search(ran_start=True):
                 print(f"Empty fringe. Killing and increasing T to {T}")
                 break
 
-            min_state = get_min_state(fringe)
-            
-            # TODO: Analysis of fringe size compared to A*
+            #min_state = get_min_state(fringe)
+            next_state = fringe.pop()
 
-            '''
             if time.time() - kill_time_start > KILL_TIME_MAX:
                 # if time exceeds, greedily finish.
                 print("Kill time exceeded. Terminating.")
                 print("Calculating Greedily from current minimum.")
-                tour, tour_length = continue_greedily(min_state)
-                break
-            '''
-
-            if min_state.is_goal:
-                tour = min_state.cities
-                tour_length = min_state.path_cost_from_root
+                tour, tour_length = continue_greedily(next_state)
                 running = False
                 break
-            fringe.remove(min_state)
+            
 
-            child_states = min_state.get_child_states()
+            if next_state.is_goal:
+                tour = next_state.cities
+                tour_length = next_state.path_cost_from_root
+                running = False
+                break
+            #fringe.remove(min_state)
+
+            child_states = next_state.get_child_states()
+
             child_states, _next_T = eval_fringe(child_states, T)
+
             if _next_T < next_T and _next_T > T:
                 next_T = _next_T
 
             for s in child_states:
-                bisect.insort_left(fringe, s)
+                fringe.append(s)
 
     return tour, tour_length
 
@@ -398,7 +399,7 @@ start_time = time.time()
 tour, tour_length = ida_search(ran_start=False)
 end_time = time.time()
 true_end = time.time()
-print(f"A* search took \t{end_time - start_time}")
+print(f"IDA* search took \t{end_time - start_time}")
 print(f"Program time \t{true_end - true_start}")
 
 
