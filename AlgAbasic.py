@@ -240,6 +240,7 @@ codes_and_names = {'BF' : 'brute-force search',
 '''
 
 import bisect
+from itertools import repeat
 
 true_start = time.time()
 NB_CITIES = len(distance_matrix)
@@ -293,7 +294,7 @@ class State:
                     nb_remaining=self.nb_remaining-1)
 
     def get_child_states(self):
-        child_states = []
+        child_states = [] # Changing to a generator does little for performance.
         if self.nb_remaining:
             for possible_city in self.remaining_cities:
                 path_cost = distance_matrix[self.current_city][possible_city]
@@ -328,13 +329,6 @@ def continue_greedily(state):
     g_cities.append(state.cities[0])
     return g_cities, total
 
-def min_key(x):
-    return x.total_cost
-
-def get_min_state(fringe):
-    #return min(fringe, key=min_key)
-    return fringe[0]
-
 def as_search(ran_start=True):
     '''
         Inputs:
@@ -353,7 +347,7 @@ def as_search(ran_start=True):
     initial_state = State(initial_city, cities=[initial_city])
 
     fringe = initial_state.get_child_states()
-    fringe.sort(key=min_key)
+    fringe.sort()
 
     while True:
         min_state = fringe.pop(0)
@@ -369,14 +363,9 @@ def as_search(ran_start=True):
             tour = min_state.cities
             tour_length = min_state.path_cost_from_root
             break
-        #fringe.remove(min_state)
-        #fringe.pop(0)
         child_states = min_state.get_child_states()
+        
         for s in child_states:
-            # Maybe a better option would be to track the minimum state so far
-            # pick this one in the next iteration.
-            # Only sort if no child state is smaller than current min? 
-            # May not work, but just want to minimise number of sorts.
             bisect.insort_left(fringe, s)
 
     return tour, tour_length
