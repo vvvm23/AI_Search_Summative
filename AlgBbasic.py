@@ -345,11 +345,6 @@ def ida_search(ran_start=True):
     running = True
 
     while running:
-
-        #initial_city = random.randint(0, NB_CITIES-1) if ran_start else 0
-        #initial_state = State(initial_city, cities=[initial_city])
-
-        #T = initial_state.total_cost / 2
         next_T = 9999999
 
         fringe = initial_state.get_child_states()
@@ -357,16 +352,13 @@ def ida_search(ran_start=True):
         if _next_T < next_T and _next_T > T:
             next_T = _next_T
 
-        #fringe.sort(key=min_key)
         nb_fringe = len(fringe)
 
         while True:
             if not nb_fringe:
                 T = next_T
-                #print(f"Empty fringe. Killing and increasing T to {T}")
                 break
 
-            #min_state = get_min_state(fringe)
             next_state = fringe.pop()
             nb_fringe -= 1
 

@@ -240,67 +240,24 @@ codes_and_names = {'BF' : 'brute-force search',
 '''
 
 import bisect
-import numpy as np
+from itertools import repeat
 
 true_start = time.time()
-
-NB_CITIES = len(distance_matrix) 
-print(np.average(np.array(distance_matrix))*NB_CITIES)
-
-#distance_matrix = {y: {x: distance_matrix[y][x] for x in range(NB_CITIES)} for y in range(NB_CITIES)}
-
-'''
-dict_distance_matrix = {}
-for y in range(NB_CITIES):
-    dict_distance_matrix[y] = {}
-    for x in range(NB_CITIES):
-        dict_distance_matrix[y][x] = distance_matrix[y][x]
-
-distance_matrix = dict_distance_matrix
-'''
-
+NB_CITIES = len(distance_matrix)
 
 class State:
     def __init__(self, current_city, cities=[], path_cost_from_root=0, nb_cities=None, nb_remaining=None):
         global NB_CITIES
-        self.cities = cities # cannot have as set as must be ordered. Perhaps dictionary?
+        self.cities = cities
         self.nb_cities = len(cities) if nb_cities == None else nb_cities
         self.current_city = current_city
         self.remaining_cities = list(set(range(NB_CITIES)) - set(cities))
         self.nb_remaining = len(self.remaining_cities) if nb_remaining == None else nb_remaining
         self.path_cost_from_root = path_cost_from_root
         self.is_goal = nb_cities == (NB_CITIES + 1)
-        self.total_cost = path_cost_from_root / 2 + self.heuristic()
-
-    # Heuristic cost algorithm
-    # Mean of edges from state
-    
-    '''def heuristic(self):
-        if not len(self.remaining_cities):
-            return 0
-        path_costs = [distance_matrix[self.current_city][x] for x in self.remaining_cities]
-        return sum(path_costs)/len(path_costs)
-    '''
-    # Min edge from state
-    '''
-    def heuristic(self):
-        if not len(self.remaining_cities):
-            return 0
-
-        path_costs = [distance_matrix[self.current_city][x] for x in self.remaining_cities]
-        return min(path_costs)
-    '''
-
-    # Sum to start node
-    '''
-    def heuristic(self):
-        min_cost, index = min((v, i) if not i == self.current_city else (999999, i) for (i, v) in enumerate(distance_matrix[self.current_city]))
-        cost_to_start = sum(distance_matrix[x][self.cities[0]] if not x == index else 0 for x in self.remaining_cities)
-        return min_cost + cost_to_start
-    '''
+        self.total_cost = path_cost_from_root + self.heuristic()
 
     # greedy continuation heuristic
-    # this one is pretty good, tad slow. but make copies if we change further
     def heuristic(self):
         if self.is_goal:
             return 0
@@ -337,7 +294,7 @@ class State:
                     nb_remaining=self.nb_remaining-1)
 
     def get_child_states(self):
-        child_states = []
+        child_states = [] # Changing to a generator does little for performance.
         if self.nb_remaining:
             for possible_city in self.remaining_cities:
                 path_cost = distance_matrix[self.current_city][possible_city]
@@ -372,13 +329,6 @@ def continue_greedily(state):
     g_cities.append(state.cities[0])
     return g_cities, total
 
-def min_key(x):
-    return x.total_cost
-
-def get_min_state(fringe):
-    #return min(fringe, key=min_key)
-    return fringe[0]
-
 def as_search(ran_start=True):
     '''
         Inputs:
@@ -397,10 +347,10 @@ def as_search(ran_start=True):
     initial_state = State(initial_city, cities=[initial_city])
 
     fringe = initial_state.get_child_states()
-    fringe.sort(key=min_key)
+    fringe.sort()
 
     while True:
-        min_state = get_min_state(fringe)
+        min_state = fringe.pop(0)
         
         if time.time() - kill_time_start > KILL_TIME_MAX:
             # if time exceeds, greedily finish.
@@ -413,13 +363,9 @@ def as_search(ran_start=True):
             tour = min_state.cities
             tour_length = min_state.path_cost_from_root
             break
-        fringe.remove(min_state)
         child_states = min_state.get_child_states()
+        
         for s in child_states:
-            # Maybe a better option would be to track the minimum state so far
-            # pick this one in the next iteration.
-            # Only sort if no child state is smaller than current min? 
-            # May not work, but just want to minimise number of sorts.
             bisect.insort_left(fringe, s)
 
     return tour, tour_length

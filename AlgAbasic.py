@@ -240,7 +240,6 @@ codes_and_names = {'BF' : 'brute-force search',
 '''
 
 import bisect
-from itertools import repeat
 
 true_start = time.time()
 NB_CITIES = len(distance_matrix)
