@@ -225,7 +225,7 @@ class State:
         self.nb_remaining = len(self.remaining_cities) if nb_remaining == None else nb_remaining
         self.path_cost_from_root = path_cost_from_root
         self.is_goal = nb_cities == (NB_CITIES + 1)
-        self.total_cost = path_cost_from_root / 2 + self.heuristic()
+        self.total_cost = path_cost_from_root + self.heuristic()
 
     # greedy continuation heuristic
     def heuristic(self):
@@ -334,7 +334,7 @@ def ida_search(ran_start=True):
             tour_length - Total cost of the tour
     '''
 
-    KILL_TIME_MAX = 50.0 # Ensure this is less than 60.0 including time to finish.
+    KILL_TIME_MAX = 55.0 # Ensure this is less than 60.0 including time to finish.
 
     kill_time_start = time.time()
 
@@ -358,15 +358,17 @@ def ida_search(ran_start=True):
             next_T = _next_T
 
         #fringe.sort(key=min_key)
+        nb_fringe = len(fringe)
 
         while True:
-            if not len(fringe):
+            if not nb_fringe:
                 T = next_T
                 #print(f"Empty fringe. Killing and increasing T to {T}")
                 break
 
             #min_state = get_min_state(fringe)
             next_state = fringe.pop()
+            nb_fringe -= 1
 
             if time.time() - kill_time_start > KILL_TIME_MAX:
                 # if time exceeds, greedily finish.
@@ -390,6 +392,7 @@ def ida_search(ran_start=True):
 
             for s in child_states:
                 fringe.append(s)
+                nb_fringe += 1
 
     return tour, tour_length
 
@@ -399,7 +402,6 @@ end_time = time.time()
 true_end = time.time()
 print(f"IDA* search took \t{end_time - start_time}")
 print(f"Program time \t{true_end - true_start}")
-
 
 #######################################################################################################
 ############ the code for your algorithm should now be complete and you should have        ############
