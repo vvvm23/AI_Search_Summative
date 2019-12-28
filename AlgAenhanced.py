@@ -339,7 +339,7 @@ def as_search(ran_start=True):
             tour_length - Total cost of the tour
     '''
 
-    KILL_TIME_MAX = 49.0 # Ensure this is less than 60.0 including time to finish.
+    KILL_TIME_MAX = 60.0 # Ensure this is less than 60.0 including time to finish.
 
     kill_time_start = time.time()
 
@@ -353,15 +353,14 @@ def as_search(ran_start=True):
         min_state = fringe.pop(0)
         
         # TODO: maybe increase early termination or remove. I've heard he only wants 100s within a minute.
-        '''
+        
         if time.time() - kill_time_start > KILL_TIME_MAX:
             # if time exceeds, greedily finish.
             print("Kill time exceeded. Terminating.")
             print("Calculating Greedily from current minimum.")
             tour, tour_length = continue_greedily(min_state)
             break
-        '''
-
+        
         if min_state.is_goal:
             tour = min_state.cities
             tour_length = min_state.path_cost_from_root
@@ -373,23 +372,22 @@ def as_search(ran_start=True):
 
     return tour, tour_length
 
-# TODO: Allow for multiple changes to take place. Worst case n^2 changes
 def two_opt(original_tour, original_tour_length):
     best_tour_length = original_tour_length
     best_tour = [i for i in original_tour]
     for i in range(num_cities - 1):
         for j in range(i+2, num_cities-1):
-            edge_x_a = original_tour[i]
-            edge_x_b = original_tour[i+1]
-            edge_y_a = original_tour[j]
-            edge_y_b = original_tour[j+1]
+            edge_x_a = best_tour[i]
+            edge_x_b = best_tour[i+1]
+            edge_y_a = best_tour[j]
+            edge_y_b = best_tour[j+1]
 
-            new_cost = (original_tour_length + distance_matrix[edge_x_a][edge_y_a] + distance_matrix[edge_y_b][edge_x_b]) - \
+            new_cost = (best_tour_length + distance_matrix[edge_x_a][edge_y_a] + distance_matrix[edge_y_b][edge_x_b]) - \
                        (distance_matrix[edge_x_a][edge_x_b] + distance_matrix[edge_y_a][edge_y_b])
 
             if new_cost < best_tour_length:
                 best_tour_length = new_cost
-                best_tour = tour[:i+1] + tour[j:i:-1] + tour[j+1:]
+                best_tour = best_tour[:i+1] + best_tour[j:i:-1] + best_tour[j+1:]
 
     if not best_tour_length == original_tour_length:
         print(f"k-opt found a better tour of length {best_tour_length}")
@@ -401,13 +399,13 @@ tour, tour_length = as_search(ran_start=False)
 end_time = time.time()
 true_end = time.time()
 print(f"A* search took \t{end_time - start_time}\n")
-if end_time - start_time < 999999999.0:#50.0:
-    print(f"Some time remaining.. Start 2-opt optimisation.")
-    print(f"Current tour has length {tour_length}")
-    start_time = time.time()
-    tour, tour_length = two_opt(tour, tour_length)
-    end_time = time.time()
-    print(f"k-opt optimisation took \t{end_time - start_time}\n")
+
+print(f"Starting 2-opt tour optimisation.")
+print(f"Current tour has length {tour_length}")
+start_time = time.time()
+tour, tour_length = two_opt(tour, tour_length)
+end_time = time.time()
+print(f"2-opt optimisation took \t{end_time - start_time}\n")
 
 print(f"Program time \t{true_end - true_start}\n")
 
