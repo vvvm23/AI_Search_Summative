@@ -242,18 +242,16 @@ codes_and_names = {'BF' : 'brute-force search',
 import bisect
 
 true_start = time.time()
-NB_CITIES = len(distance_matrix) # why? why not num_cities
 
 class State:
     def __init__(self, current_city, cities=[], path_cost_from_root=0, nb_cities=None, nb_remaining=None):
-        global NB_CITIES
         self.cities = cities
         self.nb_cities = len(cities) if nb_cities == None else nb_cities
         self.current_city = current_city
-        self.remaining_cities = list(set(range(NB_CITIES)) - set(cities))
+        self.remaining_cities = list(set(range(num_cities)) - set(cities))
         self.nb_remaining = len(self.remaining_cities) if nb_remaining == None else nb_remaining
         self.path_cost_from_root = path_cost_from_root
-        self.is_goal = nb_cities == (NB_CITIES + 1)
+        self.is_goal = nb_cities == (num_cities + 1)
         self.total_cost = path_cost_from_root + self.heuristic()
 
     # greedy continuation heuristic
@@ -343,7 +341,7 @@ def as_search(ran_start=True):
 
     kill_time_start = time.time()
 
-    initial_city = random.randint(0, NB_CITIES-1) if ran_start else 0
+    initial_city = random.randint(0, num_cities-1) if ran_start else 0
     initial_state = State(initial_city, cities=[initial_city])
 
     fringe = initial_state.get_child_states()
@@ -351,8 +349,6 @@ def as_search(ran_start=True):
 
     while True:
         min_state = fringe.pop(0)
-        
-        # TODO: maybe increase early termination or remove. I've heard he only wants 100s within a minute.
         
         if time.time() - kill_time_start > KILL_TIME_MAX:
             # if time exceeds, greedily finish.
