@@ -337,7 +337,7 @@ def as_search(ran_start=True):
             tour_length - Total cost of the tour
     '''
 
-    KILL_TIME_MAX = 60.0 # Ensure this is less than 60.0 including time to finish.
+    KILL_TIME_MAX = 110.0 # Ensure this is less than 60.0 including time to finish.
 
     kill_time_start = time.time()
 
@@ -371,19 +371,25 @@ def as_search(ran_start=True):
 def two_opt(original_tour, original_tour_length):
     best_tour_length = original_tour_length
     best_tour = [i for i in original_tour]
-    for i in range(num_cities - 1):
-        for j in range(i+2, num_cities-1):
-            edge_x_a = best_tour[i]
-            edge_x_b = best_tour[i+1]
-            edge_y_a = best_tour[j]
-            edge_y_b = best_tour[j+1]
 
-            new_cost = (best_tour_length + distance_matrix[edge_x_a][edge_y_a] + distance_matrix[edge_y_b][edge_x_b]) - \
-                       (distance_matrix[edge_x_a][edge_x_b] + distance_matrix[edge_y_a][edge_y_b])
+    new_found = True
 
-            if new_cost < best_tour_length:
-                best_tour_length = new_cost
-                best_tour = best_tour[:i+1] + best_tour[j:i:-1] + best_tour[j+1:]
+    while new_found:
+        new_found = False
+        for i in range(num_cities - 1):
+            for j in range(i+2, num_cities-1):
+                edge_x_a = best_tour[i]
+                edge_x_b = best_tour[i+1]
+                edge_y_a = best_tour[j]
+                edge_y_b = best_tour[j+1]
+
+                new_cost = (best_tour_length + distance_matrix[edge_x_a][edge_y_a] + distance_matrix[edge_y_b][edge_x_b]) - \
+                        (distance_matrix[edge_x_a][edge_x_b] + distance_matrix[edge_y_a][edge_y_b])
+
+                if new_cost < best_tour_length:
+                    none_found = True
+                    best_tour_length = new_cost
+                    best_tour = best_tour[:i+1] + best_tour[j:i:-1] + best_tour[j+1:]
 
     if not best_tour_length == original_tour_length:
         print(f"k-opt found a better tour of length {best_tour_length}")

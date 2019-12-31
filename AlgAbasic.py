@@ -336,7 +336,7 @@ def as_search(ran_start=True):
             tour_length - Total cost of the tour
     '''
 
-    KILL_TIME_MAX = 60.0 # Ensure this is less than 60.0 including time to finish.
+    KILL_TIME_MAX = 110.0 # Ensure this is less than 60.0 including time to finish.
 
     kill_time_start = time.time()
 
