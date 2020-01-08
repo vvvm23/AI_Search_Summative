@@ -26,12 +26,25 @@ I use the same enhancement for both algorithms as it is algorithm independent an
 
 \vspace{5pt}
 
-2-opt is a simply local search algorithm that attempts to solve the travelling salesman problem. I will use it instead to take our existing tour produced by either A-Star or IDA-Star Search and try to produce a better tour.
+2-opt is a simple local search algorithm that attempts to solve the travelling salesman problem. I will use it instead to take our existing tour produced by either A-Star or IDA-Star Search and try to produce a better tour.
 
 2-opt iteratively picks two cities $a$ and $b$ from tour $T$ and removes a sub tour consisting of cities from $a$ to $b$ in the tour inclusive. It will then reverse this subtour and insert it back into the tour $T$ to produce $T'$. If the tour length of $T'$ is less than $T$ then we replace $T$ with $T'$.
 
-This repeats through all pairs of tours, and will continue looping until a pass is made where no better tours are found. Then, the $T'$ is outputted.
+This repeats through all pairs of tours, and will continue looping until a pass is made where no better tours are found. Then, $T'$ is outputted.
 
 2-opt on its own is a poor performing algorithm, but when we use a more sophisticated algorithm first, it can lead to small to medium decreases in tour length. Additionally, it works for any algorithm, as the only input is the tour we have already generated.
+
+\vspace{5pt}
+
+\noindent\hrulefill
+
+\vspace{5pt}
+
+\section*{References:}
+
+\begin{itemize}
+	\item G. A. CROES (1958). A method for slving travelling salesman problems. Operations Res. 6 (1958), pp., 791-812 
+\item Christian Nilsson. Heuristics for the Traveling Salesman Problem.
+\end{itemize}
 
 \end{document}
