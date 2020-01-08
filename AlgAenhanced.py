@@ -387,7 +387,7 @@ def two_opt(original_tour, original_tour_length):
                         (distance_matrix[edge_x_a][edge_x_b] + distance_matrix[edge_y_a][edge_y_b])
 
                 if new_cost < best_tour_length:
-                    none_found = True
+                    new_found = True
                     best_tour_length = new_cost
                     best_tour = best_tour[:i+1] + best_tour[j:i:-1] + best_tour[j+1:]
 
