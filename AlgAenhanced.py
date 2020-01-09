@@ -392,7 +392,7 @@ def two_opt(original_tour, original_tour_length):
                     best_tour = best_tour[:i+1] + best_tour[j:i:-1] + best_tour[j+1:]
 
     if not best_tour_length == original_tour_length:
-        print(f"k-opt found a better tour of length {best_tour_length}")
+        print("k-opt found a better tour of length", best_tour_length)
     return best_tour, best_tour_length
       
 
@@ -400,16 +400,16 @@ start_time = time.time()
 tour, tour_length = as_search(ran_start=False)
 end_time = time.time()
 true_end = time.time()
-print(f"A* search took \t{end_time - start_time}\n")
+print("A* search took \t", {end_time - start_time}, "\n")
 
-print(f"Starting 2-opt tour optimisation.")
-print(f"Current tour has length {tour_length}")
+print("Starting 2-opt tour optimisation.")
+print("Current tour has length", tour_length)
 start_time = time.time()
 tour, tour_length = two_opt(tour, tour_length)
 end_time = time.time()
-print(f"2-opt optimisation took \t{end_time - start_time}\n")
+print("2-opt optimisation took \t", end_time - start_time, "\n")
 
-print(f"Program time \t{true_end - true_start}\n")
+print("Program time \t", true_end - true_start, "\n")
 
 #######################################################################################################
 ############ the code for your algorithm should now be complete and you should have        ############

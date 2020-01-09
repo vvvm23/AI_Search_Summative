@@ -371,8 +371,8 @@ start_time = time.time()
 tour, tour_length = as_search(ran_start=False)
 end_time = time.time()
 true_end = time.time()
-print(f"A* search took \t{end_time - start_time}")
-print(f"Program time \t{true_end - true_start}")
+print("A* search took \t", end_time - start_time)
+print("Program time \t", true_end - true_start)
 
 #######################################################################################################
 ############ the code for your algorithm should now be complete and you should have        ############
