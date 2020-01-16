@@ -14,13 +14,10 @@ Algorithm B: IDA* Search (with Greedy Search Heuristic)
 
 Description of enhancement of Algorithm A: 2-opt tour optimisation
 
-Description of enhancement of Algorithm B: 2-opt tour optimisation
-
-\vspace{10pt}
-
-I use the same enhancement for both algorithms as it is algorithm independent and quite effective. Hence, I will explain it as one.
+Description of enhancement of Algorithm B: 3-opt tour optimisation
 
 \vspace{5pt}
+
 
 \noindent\hrulefill
 
@@ -40,10 +37,21 @@ This repeats through all pairs of tours, and will continue looping until a pass 
 
 \vspace{5pt}
 
+
+3-opt is very similar to 2-opt in concept. It is also a local search algorithm for the travelling salesman problem. The difference is that instead of selecting two edges, 3-opt instead selects 3. (This can be generalised to $k$ edges for $k$-opt). It deletes these edges and then tries to reconnect the tour in all possible ways and selects the best. (as opposed to 2-opt which only has one such option)
+
+This increases the time complexity from $O(n^2)$ to $O(n^3)$. My theory is that despite the increased worst case time complexity the actual time taken will still be acceptable as we will first use IDA* to produce a good tour before passing to 3-opt. This means that few iterations will happen before 3-opt naturally terminates leading to an acceptable running time. 
+
+\vspace{5pt}
+\noindent\hrulefill
+
+
+\vspace{5pt}
+
 \section*{References:}
 
 \begin{itemize}
-	\item G. A. CROES (1958). A method for slving travelling salesman problems. Operations Res. 6 (1958), pp., 791-812 
+	\item G. A. CROES (1958). A method for solving travelling salesman problems. Operations Res. 6 (1958), pp., 791-812 
 \item Christian Nilsson. Heuristics for the Traveling Salesman Problem.
 \end{itemize}
 

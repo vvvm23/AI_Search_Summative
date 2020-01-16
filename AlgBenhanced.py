@@ -456,7 +456,7 @@ def three_opt(original_tour, original_tour_length):
                     if choice == 3:
                         best_tour = best_tour[:a+1] + best_tour[b:a:-1] + best_tour[c:b:-1] + best_tour[c+1:]
 
-                    new_found = False if not choice else True
+                    new_found = new_found if not choice else True
     return best_tour, best_tour_length
 
 start_time = time.time()
