@@ -459,7 +459,6 @@ def three_opt(original_tour, original_tour_length):
                     new_found = False if not choice else True
     return best_tour, best_tour_length
 
-
 start_time = time.time()
 tour, tour_length = ida_search(ran_start=False)
 end_time = time.time()
