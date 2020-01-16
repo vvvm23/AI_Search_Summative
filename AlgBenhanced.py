@@ -410,19 +410,74 @@ def two_opt(original_tour, original_tour_length):
         print("k-opt found a better tour of length", best_tour_length)
     return best_tour, best_tour_length
 
+def three_opt(original_tour, original_tour_length):
+    best_tour_length = original_tour_length
+    best_tour = [i for i in original_tour]
+    new_found = True
+    while new_found:
+        new_found = False
+        for a in range(num_cities-2):
+            for b in range(a+1, num_cities-1):
+                for c in range(b+1, num_cities):
+                    edge_a_one = best_tour[a]                    
+                    edge_a_two = best_tour[a+1]
+                    edge_b_one = best_tour[b]
+                    edge_b_two = best_tour[b+1]
+                    edge_c_one = best_tour[c]
+                    edge_c_two = best_tour[c+1]
+                    
+                    # Remove chosen edges from running total
+                    subtracted_total = best_tour_length - (distance_matrix[edge_a_one][edge_a_two] + distance_matrix[edge_b_one][edge_b_two] + distance_matrix[edge_c_one][edge_c_two])
+                    choice = 0
+                    # First choice. Connect to edge_c_one. It then follows edge_b_two should connect to edge_a_two. Then edge_b_one to edge_c_two
+                    # This means we must reverse tour between edge_b_two and and edge_c_one inclusive.
+                    choice_total = subtracted_total + (distance_matrix[edge_a_one][edge_c_one] + distance_matrix[edge_b_two][edge_a_two] + distance_matrix[edge_b_one][edge_c_two])
+                    if choice_total < best_tour_length:
+                        choice = 1
+                        best_tour_length = choice_total
+
+                    # Second choice. Add a_one,b_two c_one,a_two b_one,c_two. Reverse nothing
+                    choice_total = subtracted_total + (distance_matrix[edge_a_one][edge_b_two] + distance_matrix[edge_c_one][edge_a_two] + distance_matrix[edge_b_one][edge_c_two])
+                    if choice_total < best_tour_length:
+                        choice = 2
+                        best_tour_length = choice_total
+
+                    # Third choice. Add a_one,b_one a_two,c_one b_two,c_two. Reverse a_two:b_one and b_two:c_one
+                    choice_total = subtracted_total + (distance_matrix[edge_a_one][edge_b_one] + distance_matrix[edge_a_two][edge_c_one] + distance_matrix[edge_b_two][edge_c_two])
+                    if choice_total < best_tour_length:
+                        choice = 3
+                        best_tour_length = choice_total
+
+                    # Now build tours if better was found
+                    if choice == 1:
+                        best_tour = best_tour[:a+1] + best_tour[c:b:-1] + best_tour[a+1:b+1] + best_tour[c+1:] 
+                    if choice == 2:
+                        best_tour = best_tour[:a+1] + best_tour[b+1:c+1] + best_tour[a+1:b+1] + best_tour[c+1:] 
+                    if choice == 3:
+                        best_tour = best_tour[:a+1] + best_tour[b:a:-1] + best_tour[c:b:-1] + best_tour[c+1:]
+
+                    new_found = False if not choice else True
+    return best_tour, best_tour_length
+
+
 start_time = time.time()
 tour, tour_length = ida_search(ran_start=False)
 end_time = time.time()
-true_end = time.time()
 print("IDA* search took \t", end_time - start_time, "\n")
 
-print("Starting 2-opt tour optimisation.")
+# print("Starting 2-opt tour optimisation.")
+# print("Current tour has length", tour_length)
+# start_time = time.time()
+# tour, tour_length = two_opt(tour, tour_length)
+# end_time = time.time()
+# print("2-opt optimisation took \t", end_time - start_time, "\n")
+print("Starting 3-opt tour optimisation.")
 print("Current tour has length", tour_length)
 start_time = time.time()
-tour, tour_length = two_opt(tour, tour_length)
+tour, tour_length = three_opt(tour, tour_length)
 end_time = time.time()
-print("2-opt optimisation took \t", end_time - start_time, "\n")
-
+print("3-opt optimisation took \t", end_time - start_time, "\n")
+true_end = time.time()
 print("Program time \t", true_end - true_start)
 
 #######################################################################################################
