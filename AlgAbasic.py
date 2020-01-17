@@ -241,8 +241,6 @@ codes_and_names = {'BF' : 'brute-force search',
 
 import bisect
 
-true_start = time.time()
-
 class State:
     def __init__(self, current_city, cities=[], path_cost_from_root=0, nb_cities=None, nb_remaining=None):
         self.cities = cities
@@ -326,11 +324,10 @@ def continue_greedily(state):
     g_cities.append(state.cities[0])
     return g_cities, total
 
-def as_search(ran_start=True):
+def as_search():
     '''
         Inputs:
             distance_matrix - Symmetric matrix of distances between cities
-            ran_start - Whether to choose random start or from node 0. Default 0.
         Outputs:
             tour - List of cities visited in order
             tour_length - Total cost of the tour
@@ -340,7 +337,7 @@ def as_search(ran_start=True):
 
     kill_time_start = time.time()
 
-    initial_city = random.randint(0, num_cities-1) if ran_start else 0
+    initial_city = 0 
     initial_state = State(initial_city, cities=[initial_city])
 
     fringe = initial_state.get_child_states()
@@ -367,12 +364,7 @@ def as_search(ran_start=True):
 
     return tour, tour_length
 
-start_time = time.time()
-tour, tour_length = as_search(ran_start=False)
-end_time = time.time()
-true_end = time.time()
-print("A* search took \t", end_time - start_time)
-print("Program time \t", true_end - true_start)
+tour, tour_length = as_search()
 
 #######################################################################################################
 ############ the code for your algorithm should now be complete and you should have        ############

@@ -211,8 +211,6 @@ codes_and_names = {'BF' : 'brute-force search',
 ############    now the code for your algorithm should begin                               ############
 #######################################################################################################
 
-true_start = time.time()
-
 class State:
     def __init__(self, current_city, cities=[], path_cost_from_root=0, nb_cities=None, nb_remaining=None):
         global num_cities
@@ -301,11 +299,7 @@ def continue_greedily(state):
     g_cities.append(state.cities[0])
     return g_cities, total
 
-def min_key(x):
-    return x.total_cost
-
 def get_min_state(fringe):
-    #return min(fringe, key=min_key)
     return fringe[0]
 
 def eval_fringe(states, T):
@@ -320,13 +314,11 @@ def eval_fringe(states, T):
             min_T = s.total_cost
 
     return fringe, min_T
-        
 
-def ida_search(ran_start=True):
+def ida_search():
     '''
         Inputs:
             distance_matrix - Symmetric matrix of distances between cities
-            ran_start - Whether to choose random start or from node 0. Default 0.
         Outputs:
             tour - List of cities visited in order
             tour_length - Total cost of the tour
@@ -336,7 +328,7 @@ def ida_search(ran_start=True):
 
     kill_time_start = time.time()
 
-    initial_city = random.randint(0, num_cities-1) if ran_start else 0
+    initial_city = 0 
     initial_state = State(initial_city, cities=[initial_city])
     T = initial_state.total_cost
 
@@ -386,12 +378,7 @@ def ida_search(ran_start=True):
 
     return tour, tour_length
 
-start_time = time.time()
-tour, tour_length = ida_search(ran_start=False)
-end_time = time.time()
-true_end = time.time()
-print("IDA* search took \t", end_time - start_time)
-print("Program time \t", true_end - true_start)
+tour, tour_length = ida_search()
 
 #######################################################################################################
 ############ the code for your algorithm should now be complete and you should have        ############

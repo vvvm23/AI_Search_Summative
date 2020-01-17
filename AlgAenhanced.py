@@ -241,8 +241,6 @@ codes_and_names = {'BF' : 'brute-force search',
 
 import bisect
 
-true_start = time.time()
-
 class State:
     def __init__(self, current_city, cities=[], path_cost_from_root=0, nb_cities=None, nb_remaining=None):
         self.cities = cities
@@ -266,7 +264,6 @@ class State:
         g_nb_remaining = self.nb_remaining
 
         while g_nb_remaining:
-            # TODO: Maybe zip distance_matrix[g_current_city] and g_remaining cities, then calculate min.
             g_current_costs = [(distance_matrix[g_current_city][x], x) for x in g_remaining_cities]
             total_add, g_current_city = min(g_current_costs)
             total += total_add
@@ -327,11 +324,10 @@ def continue_greedily(state):
     g_cities.append(state.cities[0])
     return g_cities, total
 
-def as_search(ran_start=True):
+def as_search():
     '''
         Inputs:
             distance_matrix - Symmetric matrix of distances between cities
-            ran_start - Whether to choose random start or from node 0. Default 0.
         Outputs:
             tour - List of cities visited in order
             tour_length - Total cost of the tour
@@ -341,7 +337,7 @@ def as_search(ran_start=True):
 
     kill_time_start = time.time()
 
-    initial_city = random.randint(0, num_cities-1) if ran_start else 0
+    initial_city = 0 
     initial_state = State(initial_city, cities=[initial_city])
 
     fringe = initial_state.get_child_states()
@@ -396,20 +392,8 @@ def two_opt(original_tour, original_tour_length):
     return best_tour, best_tour_length
       
 
-start_time = time.time()
-tour, tour_length = as_search(ran_start=False)
-end_time = time.time()
-true_end = time.time()
-print("A* search took \t", {end_time - start_time}, "\n")
-
-print("Starting 2-opt tour optimisation.")
-print("Current tour has length", tour_length)
-start_time = time.time()
+tour, tour_length = as_search()
 tour, tour_length = two_opt(tour, tour_length)
-end_time = time.time()
-print("2-opt optimisation took \t", end_time - start_time, "\n")
-
-print("Program time \t", true_end - true_start, "\n")
 
 #######################################################################################################
 ############ the code for your algorithm should now be complete and you should have        ############

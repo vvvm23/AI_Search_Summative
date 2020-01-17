@@ -211,8 +211,6 @@ codes_and_names = {'BF' : 'brute-force search',
 ############    now the code for your algorithm should begin                               ############
 #######################################################################################################
 
-true_start = time.time()
-
 class State:
     def __init__(self, current_city, cities=[], path_cost_from_root=0, nb_cities=None, nb_remaining=None):
         self.cities = cities # cannot have as set as must be ordered. Perhaps dictionary?
@@ -300,11 +298,7 @@ def continue_greedily(state):
     g_cities.append(state.cities[0])
     return g_cities, total
 
-def min_key(x):
-    return x.total_cost
-
 def get_min_state(fringe):
-    #return min(fringe, key=min_key)
     return fringe[0]
 
 def eval_fringe(states, T):
@@ -319,13 +313,11 @@ def eval_fringe(states, T):
             min_T = s.total_cost
 
     return fringe, min_T
-        
 
-def ida_search(ran_start=True):
+def ida_search():
     '''
         Inputs:
             distance_matrix - Symmetric matrix of distances between cities
-            ran_start - Whether to choose random start or from node 0. Default 0.
         Outputs:
             tour - List of cities visited in order
             tour_length - Total cost of the tour
@@ -335,7 +327,7 @@ def ida_search(ran_start=True):
 
     kill_time_start = time.time()
 
-    initial_city = random.randint(0, num_cities-1) if ran_start else 0
+    initial_city = 0 
     initial_state = State(initial_city, cities=[initial_city])
     T = initial_state.total_cost
 
@@ -384,31 +376,6 @@ def ida_search(ran_start=True):
                 nb_fringe += 1
 
     return tour, tour_length
-
-def two_opt(original_tour, original_tour_length):
-    best_tour_length = original_tour_length
-    best_tour = [i for i in original_tour]
-    new_found = True
-    while new_found:
-        new_found = False
-        for i in range(num_cities - 1):
-            for j in range(i+2, num_cities-1):
-                edge_x_a = best_tour[i]
-                edge_x_b = best_tour[i+1]
-                edge_y_a = best_tour[j]
-                edge_y_b = best_tour[j+1]
-
-                new_cost = (best_tour_length + distance_matrix[edge_x_a][edge_y_a] + distance_matrix[edge_y_b][edge_x_b]) - \
-                        (distance_matrix[edge_x_a][edge_x_b] + distance_matrix[edge_y_a][edge_y_b])
-
-                if new_cost < best_tour_length:
-                    new_found = True
-                    best_tour_length = new_cost
-                    best_tour = best_tour[:i+1] + best_tour[j:i:-1] + best_tour[j+1:]
-
-    if not best_tour_length == original_tour_length:
-        print("k-opt found a better tour of length", best_tour_length)
-    return best_tour, best_tour_length
 
 def three_opt(original_tour, original_tour_length):
     best_tour_length = original_tour_length
@@ -459,25 +426,8 @@ def three_opt(original_tour, original_tour_length):
                     new_found = new_found if not choice else True
     return best_tour, best_tour_length
 
-start_time = time.time()
-tour, tour_length = ida_search(ran_start=False)
-end_time = time.time()
-print("IDA* search took \t", end_time - start_time, "\n")
-
-# print("Starting 2-opt tour optimisation.")
-# print("Current tour has length", tour_length)
-# start_time = time.time()
-# tour, tour_length = two_opt(tour, tour_length)
-# end_time = time.time()
-# print("2-opt optimisation took \t", end_time - start_time, "\n")
-print("Starting 3-opt tour optimisation.")
-print("Current tour has length", tour_length)
-start_time = time.time()
+tour, tour_length = ida_search()
 tour, tour_length = three_opt(tour, tour_length)
-end_time = time.time()
-print("3-opt optimisation took \t", end_time - start_time, "\n")
-true_end = time.time()
-print("Program time \t", true_end - true_start)
 
 #######################################################################################################
 ############ the code for your algorithm should now be complete and you should have        ############
